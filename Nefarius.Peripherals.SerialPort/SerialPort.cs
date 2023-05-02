@@ -289,7 +289,7 @@ public class SerialPort : IDisposable
 
         CheckOnline();
         if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out f)) ThrowException("Unexpected failure");
-        return new ModemStatus(f);
+        return new ModemStatus((MODEM_STATUS_FLAGS)f);
     }
 
 
@@ -468,7 +468,7 @@ public class SerialPort : IDisposable
                     uint f;
                     if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out f))
                         throw new CommPortException("IO Error [005]");
-                    OnStatusChange(new ModemStatus(i), new ModemStatus(f));
+                    OnStatusChange(new ModemStatus((MODEM_STATUS_FLAGS)i), new ModemStatus((MODEM_STATUS_FLAGS)f));
                 }
             }
         }

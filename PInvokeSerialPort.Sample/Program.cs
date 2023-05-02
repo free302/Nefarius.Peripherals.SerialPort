@@ -7,7 +7,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var serialPort = new SerialPort("com7") { UseRts = HsOutput.Online };
+        var serialPort = new SerialPort("com3") { UseRts = HsOutput.Online };
 
         serialPort.DataReceived += x =>
         {
