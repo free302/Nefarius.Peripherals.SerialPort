@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- 어셈블리/패키지 기본 정보 -->
+	<PropertyGroup>
+		<RootNamespace>Tyrael.Driver.SerialPort</RootNamespace>
+		<AssemblyName>$(RootNamespace)</AssemblyName>
+		<VersionPrefix>1.2</VersionPrefix>
+		<VersionSuffix></VersionSuffix>
+		<SourceRevisionId></SourceRevisionId>
+
+	</PropertyGroup>
+
+	<!-- 출력 타겟 -->
+	<PropertyGroup>
+		<Configurations>Debug;Release</Configurations>
+		<OutputType>Library</OutputType>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Platform>AnyCPU</Platform>
+		<PlatformTarget>$(Platform)</PlatformTarget>
+		<DefineConstants>$(DefineConstants);WIN32SP</DefineConstants>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<!-- Language, Compiler 설정 -->
+	<PropertyGroup>
+		<LangVersion>11.0</LangVersion>
+		<Nullable>disable</Nullable>
+		<WarningsAsErrors>CS8600;CS8602;CS8603;CS8625;CS8604</WarningsAsErrors>
+		<ImplicitUsings>false</ImplicitUsings>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<Deterministic>true</Deterministic>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.2-beta">
+			<PrivateAssets>all</PrivateAssets>
+			<!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+		</PackageReference>
+		<PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="52.0.65-preview" />
+	</ItemGroup>
+</Project>

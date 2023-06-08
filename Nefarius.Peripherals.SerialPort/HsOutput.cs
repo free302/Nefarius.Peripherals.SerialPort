@@ -1,4 +1,4 @@
-﻿namespace Nefarius.Peripherals.SerialPort
+﻿namespace Tyrael.Driver.SerialPort
 {
     /// <summary>
     ///     Uses for RTS or DTR pins

@@ -1,6 +1,6 @@
 ﻿using Windows.Win32.Devices.Communication;
 
-namespace Nefarius.Peripherals.SerialPort
+namespace Tyrael.Driver.SerialPort
 {
     /// <summary>
     ///     Represents the status of the modem control input signals.

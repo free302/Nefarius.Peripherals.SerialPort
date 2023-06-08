@@ -1,4 +1,4 @@
-﻿namespace Nefarius.Peripherals.SerialPort
+﻿namespace Tyrael.Driver.SerialPort
 {
     /// <summary>
     ///     Stop bit settings

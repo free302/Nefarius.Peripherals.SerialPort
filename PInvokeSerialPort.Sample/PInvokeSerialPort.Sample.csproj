@@ -12,7 +12,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Nefarius.Peripherals.SerialPort\Nefarius.Peripherals.SerialPort.csproj" />
+    <ProjectReference Include="..\Nefarius.Peripherals.SerialPort\Tyrael.SerialPort.csproj" />
   </ItemGroup>
 
 </Project>

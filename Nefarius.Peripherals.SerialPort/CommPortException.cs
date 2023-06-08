@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Nefarius.Peripherals.SerialPort
+namespace Tyrael.Driver.SerialPort
 {
     /// <summary>
     ///     Exception used for all errors.

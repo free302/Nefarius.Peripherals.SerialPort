@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nefarius.Peripherals.SerialPort.Win32PInvoke
+namespace Tyrael.Driver.SerialPort.Win32PInvoke
 {
     internal struct OVERLAPPED
     {

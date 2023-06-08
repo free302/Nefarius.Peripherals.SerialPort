@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Nefarius.Peripherals.SerialPort;
+using Tyrael.Driver.SerialPort;
 
 namespace TestProject1
 {

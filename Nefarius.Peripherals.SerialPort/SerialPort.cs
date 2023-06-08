@@ -7,10 +7,10 @@ using Windows.Win32.Devices.Communication;
 using Windows.Win32.Foundation;
 using Windows.Win32.Storage.FileSystem;
 using Microsoft.Win32.SafeHandles;
-using Nefarius.Peripherals.SerialPort.Win32PInvoke;
+using Tyrael.Driver.SerialPort.Win32PInvoke;
 using System.Diagnostics;
 
-namespace Nefarius.Peripherals.SerialPort;
+namespace Tyrael.Driver.SerialPort;
 
 /// <summary>
 ///     PInvokeSerialPort main class.

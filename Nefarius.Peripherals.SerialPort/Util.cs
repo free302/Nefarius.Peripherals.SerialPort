@@ -1,6 +1,6 @@
 ﻿using Windows.Win32.Devices.Communication;
 
-namespace Nefarius.Peripherals.SerialPort
+namespace Tyrael.Driver.SerialPort
 {
     internal static class DCBExtensions
     {

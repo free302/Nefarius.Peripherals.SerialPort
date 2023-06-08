@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using Nefarius.Peripherals.SerialPort.Win32PInvoke;
+using Tyrael.Driver.SerialPort.Win32PInvoke;
 
-namespace Nefarius.Peripherals.SerialPort
+namespace Tyrael.Driver.SerialPort
 {
     /// <summary>
     ///     Represents the current condition of the port queues.
