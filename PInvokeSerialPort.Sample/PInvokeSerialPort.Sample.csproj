@@ -3,7 +3,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <ProjectGuid>{76FAB402-7515-4A9B-8605-4FEC0736C78A}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <AssemblyTitle>PInvokeSerialPort.Sample</AssemblyTitle>
     <Product>PInvokeSerialPort.Sample</Product>
     <Copyright>Copyright ©  2012</Copyright>

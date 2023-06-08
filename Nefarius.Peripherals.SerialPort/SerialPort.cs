@@ -8,6 +8,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Storage.FileSystem;
 using Microsoft.Win32.SafeHandles;
 using Nefarius.Peripherals.SerialPort.Win32PInvoke;
+using System.Diagnostics;
 
 namespace Nefarius.Peripherals.SerialPort;
 
@@ -30,15 +31,17 @@ public class SerialPort : IDisposable
     ///     Opens the com port and configures it with the required settings
     /// </summary>
     /// <returns>false if the port could not be opened</returns>
-    public bool Open()
+    public bool Open(CancellationToken token = default)
     {
         var portDcb = new DCB();
         var commTimeouts = new COMMTIMEOUTS();
 
         if (_online) return false;
 
-        _hPort = PInvoke.CreateFile(PortName,
-            FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE, 0,
+        _hPort = PInvoke.CreateFile(
+            PortName,
+            3221225472U,//FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE, 
+            0,
             null, FILE_CREATION_DISPOSITION.OPEN_EXISTING, FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_OVERLAPPED, null);
 
         if (_hPort.IsInvalid)
@@ -106,11 +109,12 @@ public class SerialPort : IDisposable
         // TODO: utilize Task Parallel Library here
         _rxThread = new Thread(ReceiveThread)
         {
-            Name = "CommBaseRx",
+            Name = PortName,
             Priority = ThreadPriority.AboveNormal,
             IsBackground = true
         };
-
+        _token = token;
+        //_cts = new CancellationTokenSource();
         _rxThread.Start();
         Thread.Sleep(1); //Give rx thread time to start. By documentation, 0 should work, but it does not!
 
@@ -142,9 +146,22 @@ public class SerialPort : IDisposable
     private void InternalClose()
     {
         Win32Com.CancelIo(_hPort.DangerousGetHandle());
+
         if (_rxThread != null)
         {
-            _rxThread.Abort();
+            _cts.Cancel();
+
+            //wait for thread quit
+            _receiveIoEvent.Set();
+            _closeEvent.WaitOne();
+
+            Thread.Sleep(100);
+
+            _closeEvent.Dispose();
+            _receiveIoEvent.Dispose();
+            _cts.Dispose();
+
+            //_rxThread.Abort();
             _rxThread = null;
         }
 
@@ -153,6 +170,9 @@ public class SerialPort : IDisposable
         _stateDtr = 2;
         _stateBrk = 2;
         _online = false;
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
     }
 
     /// <summary>
@@ -204,13 +224,15 @@ public class SerialPort : IDisposable
         fixed (byte* ptr = toSend)
         fixed (NativeOverlapped* ptrOl = &_ptrUwo)
         {
-            if (PInvoke.WriteFile(_hPort, ptr, (uint)_writeCount, &sent, ptrOl))
+            HANDLE h = (HANDLE)_hPort.DangerousGetHandle();
+            //if (PInvoke.WriteFile(_hPort, ptr, (uint)_writeCount, &sent, ptrOl))
+            if (PInvoke.WriteFile(h, ptr, (uint)_writeCount, &sent, ptrOl))
             {
                 _writeCount -= (int)sent;
             }
             else
             {
-                if (Marshal.GetLastWin32Error() != (int)WIN32_ERROR.ERROR_IO_PENDING) 
+                if (Marshal.GetLastWin32Error() != (int)WIN32_ERROR.ERROR_IO_PENDING)
                     ThrowException("Unexpected failure");
             }
         }
@@ -285,10 +307,8 @@ public class SerialPort : IDisposable
     /// <returns>Modem status object</returns>
     protected ModemStatus GetModemStatus()
     {
-        uint f;
-
         CheckOnline();
-        if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out f)) ThrowException("Unexpected failure");
+        if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out uint f)) ThrowException("Unexpected failure");
         return new ModemStatus((MODEM_STATUS_FLAGS)f);
     }
 
@@ -379,18 +399,19 @@ public class SerialPort : IDisposable
     /// <param name="e">The exception which was thrown</param>
     protected virtual void OnRxException(Exception e)
     {
+        Debug.WriteLine($"\nOnRxException(): {e.Message}\n");
     }
 
     private unsafe void ReceiveThread()
     {
         var buf = new byte[1];
 
-        var sg = new AutoResetEvent(false);
+        //_receiveIoEvent = new AutoResetEvent(false);
         var ov = new OVERLAPPED();
         var unmanagedOv = Marshal.AllocHGlobal(Marshal.SizeOf(ov));
         ov.Offset = 0;
         ov.OffsetHigh = 0;
-        ov.hEvent = sg.SafeWaitHandle.DangerousGetHandle();
+        ov.hEvent = _receiveIoEvent.SafeWaitHandle.DangerousGetHandle();
         Marshal.StructureToPtr(ov, unmanagedOv, true);
 
         uint eventMask = 0;
@@ -400,6 +421,9 @@ public class SerialPort : IDisposable
         {
             while (true)
             {
+                _token.ThrowIfCancellationRequested();//added by DrBAE
+                _cts.Token.ThrowIfCancellationRequested();
+
                 if (!Win32Com.SetCommMask(_hPort.DangerousGetHandle(),
                         Win32Com.EV_RXCHAR | Win32Com.EV_TXEMPTY | Win32Com.EV_CTS | Win32Com.EV_DSR
                         | Win32Com.EV_BREAK | Win32Com.EV_RLSD | Win32Com.EV_RING | Win32Com.EV_ERR))
@@ -408,7 +432,11 @@ public class SerialPort : IDisposable
                 if (!Win32Com.WaitCommEvent(_hPort.DangerousGetHandle(), uMask, unmanagedOv))
                 {
                     if (Marshal.GetLastWin32Error() == (int)WIN32_ERROR.ERROR_IO_PENDING)
-                        sg.WaitOne();
+                    {
+                        _receiveIoEvent.WaitOne();//wait 
+                        _token.ThrowIfCancellationRequested();//added by DrBAE
+                        _cts.Token.ThrowIfCancellationRequested();
+                    }
                     else
                         throw new CommPortException("IO Error [002]");
                 }
@@ -465,8 +493,7 @@ public class SerialPort : IDisposable
                 if ((eventMask & Win32Com.EV_RING) != 0) i |= Win32Com.MS_RING_ON;
                 if (i != 0)
                 {
-                    uint f;
-                    if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out f))
+                    if (!Win32Com.GetCommModemStatus(_hPort.DangerousGetHandle(), out uint f))
                         throw new CommPortException("IO Error [005]");
                     OnStatusChange(new ModemStatus((MODEM_STATUS_FLAGS)i), new ModemStatus((MODEM_STATUS_FLAGS)f));
                 }
@@ -476,11 +503,18 @@ public class SerialPort : IDisposable
         {
             if (uMask != IntPtr.Zero) Marshal.FreeHGlobal(uMask);
             if (unmanagedOv != IntPtr.Zero) Marshal.FreeHGlobal(unmanagedOv);
-            if (!(e is ThreadAbortException))
+
+            if (e is OperationCanceledException || e is ThreadAbortException) { }
+            else//if (!(e is ThreadAbortException))
             {
                 _rxException = e;
                 OnRxException(e);
+                throw;
             }
+        }
+        finally
+        {
+            _closeEvent.Set();
         }
     }
 
@@ -494,8 +528,7 @@ public class SerialPort : IDisposable
 
         if (_online)
         {
-            uint f;
-            if (Win32Com.GetHandleInformation(_hPort.DangerousGetHandle(), out f)) return true;
+            if (Win32Com.GetHandleInformation(_hPort.DangerousGetHandle(), out _)) return true;
             ThrowException("Offline");
             return false;
         }
@@ -509,21 +542,25 @@ public class SerialPort : IDisposable
 
     #region Private fields
 
-    private readonly ManualResetEvent _writeEvent = new(false);
-    private bool _auto;
-    private bool _checkSends = true;
+    readonly ManualResetEvent _writeEvent = new(false);
+    bool _auto;
+    bool _checkSends = true;
+    Handshake _handShake;
+    SafeFileHandle _hPort;
+    bool _online;
+    NativeOverlapped _ptrUwo;
+    Exception _rxException;
+    bool _rxExceptionReported;
+    Thread _rxThread;
+    int _stateBrk = 2;
+    int _stateDtr = 2;
+    int _stateRts = 2;
+    int _writeCount;
 
-    private Handshake _handShake;
-    private SafeFileHandle _hPort;
-    private bool _online;
-    private NativeOverlapped _ptrUwo;
-    private Exception _rxException;
-    private bool _rxExceptionReported;
-    private Thread _rxThread;
-    private int _stateBrk = 2;
-    private int _stateDtr = 2;
-    private int _stateRts = 2;
-    private int _writeCount;
+    CancellationToken _token;//외부 토큰
+    readonly CancellationTokenSource _cts = new();//내부 토큰 ~ Close()에서 
+    readonly ManualResetEvent _closeEvent = new(false);
+    readonly AutoResetEvent _receiveIoEvent = new(false);
 
     #endregion
 
@@ -819,4 +856,5 @@ public class SerialPort : IDisposable
     }
 
     #endregion
+
 }

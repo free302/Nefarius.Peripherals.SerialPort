@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!--<TargetFramework>net7.0-windows</TargetFramework>-->
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Ebrahim Byagowi, Benjamin Höglinger-Stelzer</Authors>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageProjectUrl>https://github.com/nefarius/PInvokeSerialPort</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nefarius/PInvokeSerialPort</RepositoryUrl>
     <PackageId>Nefarius.Peripherals.SerialPort</PackageId>
@@ -11,7 +12,7 @@
     <Copyright>Copyright 2012-2017 Ebrahim Byagowi, 2018-2022 Benjamin Höglinger-Stelzer</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/Nefarius/PInvokeSerialPort/master/ProjectIcon.png</PackageIconUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/nefarius/PInvokeSerialPort/master/LICENSE</PackageLicenseUrl>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <OutputPath>$(SolutionDir)bin\</OutputPath>
     <PackageIcon>NSS-128x128.png</PackageIcon>
     <PackageIconUrl />
@@ -31,9 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.2.63-beta">
+    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.2-beta">
       <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="52.0.65-preview" />
   </ItemGroup>
 </Project>
