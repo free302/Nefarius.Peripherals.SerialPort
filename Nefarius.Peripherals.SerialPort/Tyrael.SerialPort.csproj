@@ -4,7 +4,7 @@
 	<PropertyGroup>
 		<RootNamespace>Tyrael.Driver.SerialPort</RootNamespace>
 		<AssemblyName>$(RootNamespace)</AssemblyName>
-		<VersionPrefix>1.2</VersionPrefix>
+		<VersionPrefix>1.3</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 		<SourceRevisionId></SourceRevisionId>
 
@@ -33,11 +33,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3" />
-		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.2-beta">
+		<!--<PackageReference Include="JetBrains.Annotations" Version="2023.2.0-eap3" />-->
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.18-beta">
 			<PrivateAssets>all</PrivateAssets>
 			<!--<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
 		</PackageReference>
-		<PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="52.0.65-preview" />
+		<PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="53.0.14-preview" />
 	</ItemGroup>
 </Project>
